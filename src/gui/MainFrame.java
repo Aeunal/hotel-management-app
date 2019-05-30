@@ -23,7 +23,7 @@ public class MainFrame {
 
 	private WorkInProgress wip;
 	private ControlPanel controlPanel;
-	private ControlPanel userControlPanel;
+	private UserPanel userPanel;
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -74,11 +74,11 @@ public class MainFrame {
 		
 		wip = new WorkInProgress(frmHotelManagementSystem);
 		controlPanel = new ControlPanel(frmHotelManagementSystem, sqlAccess);
-		userControlPanel = new ControlPanel(frmHotelManagementSystem, sqlAccess, true);
+		userPanel = new UserPanel(frmHotelManagementSystem, sqlAccess);
 		
 		btnUserLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				userControlPanel.setVisible(true);
+				userPanel.setVisible(true);
 				frmHotelManagementSystem.setVisible(false);
 			}
 		});

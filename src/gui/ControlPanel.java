@@ -1,22 +1,12 @@
 package gui;
 
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import java.awt.FlowLayout;
 import javax.swing.JButton;
-import java.awt.GridLayout;
 import javax.swing.JLabel;
 import java.awt.Font;
 import javax.swing.SwingConstants;
-import net.miginfocom.swing.MigLayout;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormSpecs;
-import com.jgoodies.forms.layout.RowSpec;
 
 import database.MySQLAccess;
 import database.Query;
@@ -25,6 +15,7 @@ import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+@SuppressWarnings("serial")
 public class ControlPanel extends JFrame {
 
 	private JPanel contentPane;
@@ -34,14 +25,6 @@ public class ControlPanel extends JFrame {
 	private WorkInProgress wip;
 	private HotelView hotel;
 	private CustomerView customer;
-	
-
-	/**
-	 * @wbp.parser.constructor
-	 */
-	public ControlPanel(JFrame parent, MySQLAccess sql, boolean isUser) {
-		this(parent, sql);
-	}
 	
 	public ControlPanel(JFrame parent, MySQLAccess sql) {
 
@@ -77,6 +60,9 @@ public class ControlPanel extends JFrame {
 		contentPane.add(btnNewButton);
 		
 		GeneralDatabaseShow reservations = new GeneralDatabaseShow(this, sqlAccess, "Reservation History", Query.getReservations);
+		reservations.addDelCommand(Query.manuelDelReservation);
+		reservations.initialize();
+		
 		JButton btnNewButton_1 = new JButton("Reservation History");
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -89,6 +75,9 @@ public class ControlPanel extends JFrame {
 		contentPane.add(btnNewButton_1);
 		
 		GeneralDatabaseShow payments = new GeneralDatabaseShow(this, sqlAccess, "Payment History", Query.getPayments);
+		payments.addDelCommand(Query.manuelDelPayment);
+		payments.initialize();
+		
 		JButton btnNewButton_2 = new JButton("Payment History");
 		btnNewButton_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -101,6 +90,10 @@ public class ControlPanel extends JFrame {
 		contentPane.add(btnNewButton_2);
 		
 		GeneralDatabaseShow employees = new GeneralDatabaseShow(this, sqlAccess, "Employee Management", Query.getEmployees);
+		employees.addDelCommand(Query.manuelDelEmployee);
+		employees.addInsertCommand(Query.insertEmployee, Query.getEmployeeForInsert, Query.employeeValues);
+		employees.initialize();
+		
 		JButton btnNewButton_3 = new JButton("Employee Management");
 		btnNewButton_3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -113,9 +106,15 @@ public class ControlPanel extends JFrame {
 		contentPane.add(btnNewButton_3);
 		
 		JButton btnNewButton_4 = new JButton("Customer Management");
+
+		GeneralDatabaseShow customers = new GeneralDatabaseShow(this, sqlAccess, "Customer Management", Query.getCustomers);
+		customers.addDelCommand(Query.manuelDelCustomer);
+		customers.initialize();
+		
 		btnNewButton_4.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				customer.setVisible(true);
+				//customer.setVisible(true);
+				customers.setVisible(true);
 				setVisible(false);
 			}
 		});

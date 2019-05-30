@@ -1,8 +1,5 @@
 package gui;
 
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -13,19 +10,18 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JButton;
-import javax.swing.SwingConstants;
 import java.awt.Font;
-import java.sql.SQLException;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+@SuppressWarnings("serial")
 public class DataFormEnter extends JFrame {
 
 	private JPanel contentPane;
 	private JTextField[] textField;
 	private JLabel[] label;
 	
-	private String[] keys;
+	//private String[] keys;
 	private int keyCount = 0;
 	
 	private MySQLAccess sqlAccess;
@@ -44,9 +40,27 @@ public class DataFormEnter extends JFrame {
 		
 	}
 	
+	private String insertQuery;
+	private String insertValues;
+	
+	public DataFormEnter(JFrame parent, MySQLAccess sqlAccess, String query, String insertQuery, String insertValues) {
+		this.query = query;
+		this.insertQuery = insertQuery;
+		this.insertValues = insertValues;
+		this.sqlAccess = sqlAccess;
+		this.parent = parent;
+		try {
+			String[] keys = sqlAccess.getMetaKeys(sqlAccess.getDataWithQuery(query));
+			keyCount = keys.length;
+		} catch(Exception e) {}
+		initialize(keyCount);
+	}
+	
 	void initialize(int elementCount) {
 		textField = new JTextField[elementCount];
 		label = new JLabel[elementCount];
+		
+		int lower = 2;
 		
 		int topMargin = 50;
 		int bottomMargin = 100;
@@ -69,19 +83,14 @@ public class DataFormEnter extends JFrame {
 		btnEnter.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					sqlAccess.insertRoom(
-							textField[2].getText(),
-							textField[3].getText(),
-							textField[4].getText(),
-							textField[5].getText(),
-							textField[6].getText()
-						);
+					String[] texts = new String[elementCount-(lower-1)];
+					for(int i = 1; i < texts.length; i++)
+							texts[i] = textField[i+(lower-1)].getText();
+					String[] type = insertValues.split(" ");
+					sqlAccess.insert(insertQuery, 2, texts, type);
 					JOptionPane.showMessageDialog(null, "Values Inserted!");
-					textField[2].setText("");
-					textField[3].setText("");
-					textField[4].setText("");
-					textField[5].setText("");
-					textField[6].setText("");
+					for(int i = lower; i < textField.length; i++)
+						textField[i].setText("");
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -105,7 +114,7 @@ public class DataFormEnter extends JFrame {
 			String[] keys = sqlAccess.getMetaKeys(sqlAccess.getDataWithQuery(query));
 			
 			topMargin -= elementHeight;
-			for(int i = 2; i < elementCount; i++) {
+			for(int i = lower; i < elementCount; i++) {
 				label[i] = new JLabel(keys[i]);
 				label[i].setBounds(29,topMargin + i*elementHeight,80,14);
 				contentPane.add(label[i]);

@@ -19,16 +19,49 @@ public class MySQLAccess {
 		try {
 			m.openConnection();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 	}
 	
-	public ResultSet getDataWithQuery(String query) throws Exception {
-		openConnection();
-		statement = connect.createStatement();
-		resultSet = statement.executeQuery(query);
+	public ResultSet getDataWithQuery(String query) {
+		try {
+			openConnection();
+			statement = connect.createStatement();
+			resultSet = statement.executeQuery(query);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			//closeConnection();
+		}
+		return resultSet;
+	}
+	
+	public ResultSet getDataWithQuery(String query, String parameter) {
+		try {
+			openConnection();
+			preparedStatement = connect.prepareStatement(query);
+			preparedStatement.setString(1, parameter);
+			resultSet = preparedStatement.executeQuery();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			//closeConnection();
+		}
+		return resultSet;
+	}
+	
+	public ResultSet getDataWithQuery(String query, int parameter) {
+		try {
+			openConnection();
+			preparedStatement = connect.prepareStatement(query);
+			preparedStatement.setInt(1, parameter);
+			resultSet = preparedStatement.executeQuery();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			//closeConnection();
+		}
 		return resultSet;
 	}
 	
@@ -38,10 +71,8 @@ public class MySQLAccess {
 			statement = connect.createStatement();
 			statement.executeQuery("use Hotel_Management");
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -58,12 +89,25 @@ public class MySQLAccess {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		/*
+						insert into address values (default, 38110, null, "Turkey", "Kayseri", "mail@hotel.com", "(0234)3253452");
+						insert into person values (default, @@identity, "Mehmet", null, "Ateþ");
+						insert into customer values (default, @@identity, now());
+		 */
 	}
 	
-	public void createTable(String query) throws Exception {
-		openConnection();
-		preparedStatement = connect.prepareStatement(query);
-		preparedStatement.executeUpdate();
+	public void createTable(String query) {
+		try {
+			openConnection();
+			preparedStatement = connect.prepareStatement(query);
+			preparedStatement.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeConnection();
+		}
 	}
 	
 	public void insertAddress(String postCode, String AddressText, String Country, String City, String Email, String Phone) throws Exception {
@@ -155,9 +199,27 @@ public class MySQLAccess {
 		String database_name = "Hotel_Management";
 		String server = "localhost";
 		String url = "jdbc:mysql://localhost/Hotel_Management";
+		String prefix = "?autoReconnect=true&useSSL=false";
 		String connection = "jdbc:mysql://" +server + "/?" + database_name + "&user=" + username + "&password=" + password;
 		connect = DriverManager
-				.getConnection(url, username, password);
+				.getConnection(url+prefix, username, password);
+
+	}
+	
+	private void openConnectionAsUser() throws Exception {
+		// This will load the MySQL driver, each DB has its own driver
+		Class.forName("com.mysql.jdbc.Driver");
+
+		// Setup the connection with the DB
+		String username = "sqluser";
+		String password = "sqluserpw";
+		String database_name = "Hotel_Management";
+		String server = "localhost";
+		String url = "jdbc:mysql://localhost/Hotel_Management";
+		String prefix = "?autoReconnect=true&useSSL=false";
+		String connection = "jdbc:mysql://" +server + "/?" + database_name + "&user=" + username + "&password=" + password;
+		connect = DriverManager
+				.getConnection(url+prefix, username, password);
 
 	}
 
@@ -177,17 +239,147 @@ public class MySQLAccess {
 
 		}
 	}
-
-	public void insertRoom(String text, String text2, String text3, String text4, String text5) throws Exception {
+	
+	public void insert(String query, int from, String[] statement, String[] types) throws Exception {
 		openConnection();
-		preparedStatement = connect.prepareStatement(Query.insertRoom);
+		preparedStatement = connect.prepareStatement(query);
 		// Parameters start with 1
-		preparedStatement.setInt(1, Integer.parseInt(text));
-		preparedStatement.setInt(2, Integer.parseInt(text2));
-		preparedStatement.setInt(3, Integer.parseInt(text3));
-		preparedStatement.setInt(4, Integer.parseInt(text4));
-		preparedStatement.setInt(5, Integer.parseInt(text5));
+		for(int i = 1; i < statement.length; i++)
+			switch(types[i]) {
+			default:
+			break; case "date":
+			case "string":
+				preparedStatement.setString(i, statement[i]);
+			break; case "bool":
+				preparedStatement.setBoolean(i, statement[i].equals("true"));
+			break; case "int":	
+				preparedStatement.setInt(i, Integer.parseInt(statement[i]));
+			}
 		preparedStatement.executeUpdate();
+		//closeConnection();
 	}
 
+	public void insertRoom(String text, String text2, String text3, String text4, String text5) {
+		try {
+			openConnection();
+			preparedStatement = connect.prepareStatement(Query.insertRoom);
+			// Parameters start with 1
+			preparedStatement.setInt(1, Integer.parseInt(text));
+			preparedStatement.setInt(2, Integer.parseInt(text2));
+			preparedStatement.setInt(3, Integer.parseInt(text3));
+			preparedStatement.setInt(4, Integer.parseInt(text4));
+			preparedStatement.setInt(5, Integer.parseInt(text5));
+			preparedStatement.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			//closeConnection();
+			
+		}
+	}
+	
+	public void updateRoom(int newNum, int newFloor, int newPrice, int newSize, int roomNum) {
+		try {
+			openConnection();
+			preparedStatement = connect.prepareStatement(Query.updateRoom);
+			preparedStatement.setInt(1, newNum);
+			preparedStatement.setInt(2, newFloor);
+			preparedStatement.setInt(3, newPrice);
+			preparedStatement.setInt(4, newSize);
+			preparedStatement.setInt(5, roomNum);
+			preparedStatement.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeConnection();
+		}
+	}
+	
+	public void deleteRoom(int RoomID) {
+		try {
+			openConnection();
+			preparedStatement = connect.prepareStatement(Query.delRoom);
+			preparedStatement.setInt(1, RoomID);
+			preparedStatement.executeUpdate();
+			//statement = connect.createStatement();
+			//statement.execute(Query.manualDelRoom+RoomID);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeConnection();
+		}
+	}
+
+	public void deleteTuple(String query, int selected) {
+		try {
+			openConnection();
+			preparedStatement = connect.prepareStatement(query);
+			preparedStatement.setInt(1, selected);
+			preparedStatement.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			//closeConnection();
+		}
+	}
+	
+	public void runScript(String query) {
+		try {
+			openConnection();
+			statement = connect.createStatement();
+			statement.execute(query);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			closeConnection();
+		}
+	}
+
+	public void addUser(String[] text) {
+		String FirstName = text[0];
+		String MiddleName = text[1];
+		String LastName = text[2];
+		int Postal = Integer.parseInt(text[3]);
+		String Address = text[4];
+		String Country = text[5];
+		String City = text[6];
+		String Email = text[7];
+		String Phone = text[8];
+		try {
+			openConnection();
+			try {
+				preparedStatement = connect.prepareStatement(Query.insertAddress);
+				preparedStatement.setInt(1, Postal);
+				preparedStatement.setString(2, Address);
+				preparedStatement.setString(3, Country);
+				preparedStatement.setString(4, City);
+				preparedStatement.setString(5, Email);
+				preparedStatement.setString(6, Phone);
+				preparedStatement.executeUpdate();
+				preparedStatement.executeUpdate();
+			} catch (Exception e) {} finally {
+				try {
+					preparedStatement = connect.prepareStatement(Query.personInsert);
+					preparedStatement.setString(1, FirstName);
+					preparedStatement.setString(2, MiddleName);
+					preparedStatement.setString(3, LastName);
+					preparedStatement.executeUpdate();
+				} catch (Exception e2) {} finally {
+					preparedStatement = connect.prepareStatement(Query.customerInsert);
+					preparedStatement.executeUpdate();
+				}
+			}
+		} catch (Exception e) {} finally {
+			closeConnection();
+		}
+	}
+	
 }
